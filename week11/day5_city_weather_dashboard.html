@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>City Weather Dashboard</title>
+<style>
+ body{font-family:Arial;max-width:650px;margin:auto;padding:20px}
+ input{padding:10px;width:60%} button{padding:10px 15px}
+ #result{margin-top:20px;padding:15px;border:1px solid #ccc;border-radius:10px;background:#f9f9f9}
+ .forecast{display:flex;gap:10px;margin-top:10px}
+ .day{flex:1;padding:8px;background:white;border-radius:8px;text-align:center}
+</style>
+</head>
+<body>
+<h1>City Weather Dashboard - Option B</h1>
+<input id="cityInput" placeholder="Enter city e.g. Kampala, Nairobi, Paris" value="Kampala">
+<button onclick="loadCity()">Search</button>
+<div id="result">Enter a city...</div>
+
+<script>
+const OW_KEY = "5bace1f6cedcc53c11e52263bc2ef0a5";
+
+async function loadCity(){
+ const city = document.getElementById("cityInput").value.trim();
+ const div = document.getElementById("result");
+ if(!city) return;
+ div.innerHTML = "Loading...";
+ try{
+  // 1. Current weather
+  const wRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${OW_KEY}`);
+  const w = await wRes.json();
+  if(w.cod !== 200) throw new Error(w.message);
+
+  // 2. 3-day forecast (every 8th entry = 24h)
+  const fRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${OW_KEY}`);
+  const f = await fRes.json();
+
+  // 3. Country info
+  const cRes = await fetch(`https://restcountries.com/v3.1/name/${w.sys.country}?fullText=false`);
+  const cData = await cRes.json();
+  const country = cData[0];
+
+  let forecastHtml = "";
+  for(let i=7; i<24; i+=8){
+    const d = f.list[i];
+    if(!d) continue;
+    forecastHtml += `<div class="day"><strong>${new Date(d.dt*1000).toLocaleDateString()}</strong><br>${d.main.temp}°C<br>${d.weather[0].main}</div>`;
+  }
+
+  div.innerHTML = `
+    <h2>${w.name}, ${country.name.common} ${country.flag}</h2>
+    <h1>${w.main.temp}°C - ${w.weather[0].description}</h1>
+    <p>Humidity: ${w.main.humidity}% | Wind: ${w.wind.speed} m/s</p>
+    <h3>3-Day Forecast</h3>
+    <div class="forecast">${forecastHtml}</div>
+    <hr>
+    <h3>Country Info</h3>
+    <p><strong>Capital:</strong> ${country.capital} | <strong>Population:</strong> ${country.population.toLocaleString()} | <strong>Region:</strong> ${country.region}</p>
+    <p><em>Data: OpenWeatherMap + REST Countries</em></p>
+  `;
+ }catch(err){
+  div.innerHTML = `<span style="color:red">Error: ${err.message}<br>Check city name and API key.</span>`;
+ }
+}
+loadCity();
+</script>
+</body>
+</html>
