@@ -1,9 +1,9 @@
 import os
 import requests
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 
-load_dotenv(dotenv_path=Path(__file__).parent / ".env")
+load_dotenv(find_dotenv())
 
 api_key = os.getenv("OPENWEATHER_API_KEY")
 city = "Kampala"

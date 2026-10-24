@@ -22,3 +22,4 @@ else:
     print(f"Wind Speed: {current['wind_speed_10m']} km/h")
     print(f"Humidity: {current['relative_humidity_2m']}%")
     print(f"Time: {current['time']}")
+ 
